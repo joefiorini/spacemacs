@@ -13,17 +13,17 @@
   '(company
     (company-flow :toggle (configuration-layer/package-usedp 'company))
     (flycheck-flow :toggle (configuration-layer/package-usedp 'flycheck))
-    js2-mode
-    web-mode))
+    eldoc))
 
-(defun flow-type/post-init-js2-mode()
-  (push 'flow-type/init-mode js2-mode-hook))
-
-(defun flow-type/post-init-web-mode()
-  (push 'flow-type/init-mode react-mode-hook))
+(defun flow-type/post-init-eldoc()
+  (when (configuration-layer/package-usedp 'js2-mode)
+    (push 'flow-type/enable-eldoc js2-mode-hook))
+  (when (configuration-layer/layer-usedp 'react)
+    (push 'flow-type/enable-eldoc react-mode-hook)))
 
 (defun flow-type/post-init-company()
-  (spacemacs|add-company-hook js2-mode)
+  (when (configuration-layer/package-usedp 'js2-mode)
+    (spacemacs|add-company-hook js2-mode))
   (when (configuration-layer/layer-usedp 'react)
     (spacemacs|add-company-hook react-mode)))
 
@@ -33,11 +33,11 @@
     :init
     (progn
        (push 'company-flow company-backends-js2-mode)
-       (when (configuration-layer/package-usedp 'web-mode)
+       (when (configuration-layer/layer-usedp 'react)
          (push 'company-flow company-backends-react-mode))
     )
     :config
-    (when (configuration-layer/package-usedp 'web-mode)
+    (when (configuration-layer/layer-usedp 'react)
       (push 'react-mode company-flow-modes)))
   )
 

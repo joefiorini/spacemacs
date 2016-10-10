@@ -15,5 +15,5 @@
     (unless (string-match "\w*flow is still initializing" output)
       (flow-type/type-description (json-read-from-string output)))))
 
-(defun flow-type/init-mode ()
+(defun flow-type/enable-eldoc ()
   (set (make-local-variable 'eldoc-documentation-function) 'flow-type/type-at-cursor))

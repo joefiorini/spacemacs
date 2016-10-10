@@ -9,5 +9,4 @@ This layer adds some [[https://flowtype.org/][flow]] related functionality to Em
 * Install
 To use this configuration layer, add it to your =~/.spacemacs=. You will need to
 add =flow-type= to the existing =dotspacemacs-configuration-layers= list in this
-file.
-
+file. Please ensure you already have the flow binary installed and in your PATH.
