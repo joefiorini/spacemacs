@@ -11,7 +11,9 @@
 
 (defun flow-type/type-at-cursor ()
   (let ((output (flow-type/call-process-on-buffer-to-string
-                 (format "flow type-at-pos --retry-if-init=false --json %d %d" (line-number-at-pos) (+ (current-column) 1)))))
+                 (format "%s type-at-pos --retry-if-init=false --json %d %d"
+                         (executable-find "flow")
+                         (line-number-at-pos) (+ (current-column) 1)))))
     (unless (string-match "\w*flow is still initializing" output)
       (flow-type/type-description (json-read-from-string output)))))
 
