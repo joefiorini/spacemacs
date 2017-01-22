@@ -13,7 +13,8 @@
   '(company
     (company-flow :toggle (configuration-layer/package-usedp 'company))
     (flycheck-flow :toggle (configuration-layer/package-usedp 'flycheck))
-    eldoc))
+    eldoc
+    js2-mode))
 
 (defun flow-type/post-init-eldoc()
   (when (configuration-layer/package-usedp 'js2-mode)
@@ -23,6 +24,12 @@
 
 (defun flow-type/post-init-company()
   (spacemacs|add-company-backends :backends company-flow :modes js2-mode react-mode))
+
+(defun flow-type/post-init-js2-mode()
+  (add-to-list 'spacemacs-jump-handlers-js2-mode 'flow-type/jump-to-definition))
+
+(defun flow-type/post-init-react-mode() ;; TODO: there's no react-mode package, so this never fires
+  (add-to-list 'spacemacs-jump-handlers-react-mode 'flow-type/jump-to-definition))
 
 (defun flow-type/init-company-flow ()
   (use-package company-flow

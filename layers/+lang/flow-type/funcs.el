@@ -19,3 +19,19 @@
 
 (defun flow-type/enable-eldoc ()
   (set (make-local-variable 'eldoc-documentation-function) 'flow-type/type-at-cursor))
+
+(defun flow-type/jump-to-definition ()
+  (interactive)
+  (let ((output (flow-type/call-process-on-buffer-to-string
+                 (format "%s get-def --json --path %s %d %d"
+                         (executable-find "flow")
+                         (buffer-file-name)
+                         (line-number-at-pos) (+ (current-column) 1)))))
+    (let* ((result (json-read-from-string output))
+           (path (alist-get 'path result)))
+      (if (> (length path) 0)
+          (progn
+            (find-file path)
+            (goto-char (point-min))
+            (forward-line (1- (alist-get 'line result)))
+            (forward-char (1- (alist-get 'start result))))))))
