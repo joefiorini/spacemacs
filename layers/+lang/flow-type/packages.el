@@ -28,8 +28,11 @@
 (defun flow-type/post-init-js2-mode()
   (add-to-list 'spacemacs-jump-handlers-js2-mode 'flow-type/jump-to-definition))
 
-(defun flow-type/post-init-react-mode() ;; TODO: there's no react-mode package, so this never fires
-  (add-to-list 'spacemacs-jump-handlers-react-mode 'flow-type/jump-to-definition))
+;; There's no flow-type/post-init-react hook, so we have to do this dance:
+(defun flow-type/add-react-jump-handler()
+  (add-to-list 'spacemacs-jump-handlers-react-mode 'flow-type/jump-to-definition)
+  (remove-hook 'react-mode-hook 'flow-type/add-react-jump-handler))
+(add-hook 'react-mode-hook 'flow-type/add-react-jump-handler)
 
 (defun flow-type/init-company-flow ()
   (use-package company-flow
