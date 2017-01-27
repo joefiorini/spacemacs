@@ -22,24 +22,14 @@
     (push 'flow-type/enable-eldoc react-mode-hook)))
 
 (defun flow-type/post-init-company()
-  (when (configuration-layer/package-usedp 'js2-mode)
-    (spacemacs|add-company-hook js2-mode))
-  (when (configuration-layer/layer-usedp 'react)
-    (spacemacs|add-company-hook react-mode)))
+  (spacemacs|add-company-backends :backends company-flow :modes js2-mode react-mode))
 
 (defun flow-type/init-company-flow ()
   (use-package company-flow
     :defer t
-    :init
-    (progn
-       (push 'company-flow company-backends-js2-mode)
-       (when (configuration-layer/layer-usedp 'react)
-         (push 'company-flow company-backends-react-mode))
-    )
     :config
     (when (configuration-layer/layer-usedp 'react)
-      (push 'react-mode company-flow-modes)))
-  )
+      (push 'react-mode company-flow-modes))))
 
 (defun flow-type/init-flycheck-flow()
   (with-eval-after-load 'flycheck
