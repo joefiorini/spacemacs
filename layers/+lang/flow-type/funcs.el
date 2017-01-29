@@ -18,7 +18,8 @@
       (flow-type/type-description (json-read-from-string output)))))
 
 (defun flow-type/enable-eldoc ()
-  (set (make-local-variable 'eldoc-documentation-function) 'flow-type/type-at-cursor))
+  (if (and buffer-file-name (locate-dominating-file buffer-file-name ".flowconfig"))
+      (set (make-local-variable 'eldoc-documentation-function) 'flow-type/type-at-cursor)))
 
 (defun flow-type/jump-to-definition ()
   (interactive)
