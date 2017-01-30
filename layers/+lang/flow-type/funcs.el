@@ -25,17 +25,32 @@
     text))
 
 (defun flow-type/describe-info-object (obj)
+  (let ((err (alist-get 'error obj)))
+    (if err (error err)))
   (let ((info (flow-type/get-info-from-def obj)))
     (if info
         (flow-type/colorize-type info)
       ;; even if the 'info' field is unknown, there's sometimes useful information in the 'reasons' structure.
       (flow-type/get-reasons-from-def obj))))
 
+(defun flow-type/flow-binary ()
+    (or
+     ;; Try to find flow in node_modules (via 'npm install flow-bin')
+      (let ((root (locate-dominating-file buffer-file-name "node_modules")))
+        (if root
+            (let ((flow-binary (concat root "node_modules/.bin/flow")))
+              (if (file-executable-p flow-binary) flow-binary))))
+      ;; Fall back to a globally installed binary
+      (executable-find "flow")
+      ;; give up
+      (error "Couldn't find a flow executable")))
+
+
 
 (defun flow-type/type-at-cursor ()
   (let ((output (flow-type/call-process-on-buffer-to-string
                  (format "%s type-at-pos --retry-if-init=false --json %d %d"
-                         (executable-find "flow")
+                         (flow-type/flow-binary)
                          (line-number-at-pos) (+ (current-column) 1)))))
     (unless (string-match "\w*flow is still initializing" output)
       (flow-type/describe-info-object (json-read-from-string output)))))
@@ -48,7 +63,7 @@
   (interactive)
   (let ((output (flow-type/call-process-on-buffer-to-string
                  (format "%s get-def --json --path %s %d %d"
-                         (executable-find "flow")
+                         (flow-type/flow-binary)
                          (buffer-file-name)
                          (line-number-at-pos) (+ (current-column) 1)))))
     (let* ((result (json-read-from-string output))
