@@ -1,3 +1,6 @@
+(defun flow-type/--no-auto-start-arg ()
+  (if flow-type-no-auto-start "--no-auto-start" ""))
+
 (defun flow-type/call-process-on-buffer-to-string (command)
   (with-output-to-string
     (call-process-region (point-min) (point-max) shell-file-name nil standard-output nil shell-command-switch command)))
@@ -49,8 +52,10 @@
 
 (defun flow-type/type-at-cursor ()
   (let ((output (flow-type/call-process-on-buffer-to-string
-                 (format "%s type-at-pos --retry-if-init=false --json %d %d"
+                 (format "%s type-at-pos %s --retry-if-init=false %s --json %d %d"
                          (flow-type/flow-binary)
+                         (if buffer-file-name (concat "--path " buffer-file-name) "")
+                         (flow-type/--no-auto-start-arg)
                          (line-number-at-pos) (+ (current-column) 1)))))
     (unless (string-match "\w*flow is still initializing" output)
       (flow-type/describe-info-object (json-read-from-string output)))))
@@ -62,8 +67,9 @@
 (defun flow-type/jump-to-definition ()
   (interactive)
   (let ((output (flow-type/call-process-on-buffer-to-string
-                 (format "%s get-def --json --path %s %d %d"
+                 (format "%s get-def --quiet %s --json --path %s %d %d"
                          (flow-type/flow-binary)
+                         (flow-type/--no-auto-start-arg)
                          (buffer-file-name)
                          (line-number-at-pos) (+ (current-column) 1)))))
     (let* ((result (json-read-from-string output))
@@ -74,3 +80,48 @@
             (goto-char (point-min))
             (forward-line (1- (alist-get 'line result)))
             (forward-char (1- (alist-get 'start result))))))))
+
+(defun flow-type/project-root ()
+  (let ((dir (and buffer-file-name
+                  (locate-dominating-file buffer-file-name ".flowconfig"))))
+    (unless dir
+      (error "No .flowconfig found"))
+    dir))
+
+(defun flow-type/start-server ()
+  (ansi-color-for-comint-mode-on)
+  (let ((default-directory (flow-type/project-root)))
+    (make-comint (concat "flow " default-directory) (flow-type/flow-binary) nil "server")))
+
+(defun flow-type/show-start-server ()
+  (interactive)
+  (ansi-color-for-comint-mode-on)
+  (let ((buf (flow-type/start-server)))
+    (pop-to-buffer buf)))
+
+(defun flow-type/ensure-server-buffer ()
+  (let ((default-directory (ignore-errors (flow-type/project-root))))
+    (when default-directory (flow-type/start-server))))
+
+(defun flow-type/compile (name command)
+  (interactive)
+  (let* ((default-directory (flow-type/project-root))
+         (bname (concat "*" name " " default-directory "*"))
+         (buf (get-buffer bname)))
+    (when buf
+      (kill-buffer buf))
+    (with-current-buffer (compile (format "%s %s" (flow-type/flow-binary) command))
+      (rename-buffer bname))))
+
+(defun flow-type/status ()
+  (interactive)
+  (flow-type/compile
+   "flow status"
+   (format "status --quiet %s --show-all-errors"
+           (flow-type/--no-auto-start-arg))))
+
+(defun flow-type/check ()
+  (interactive)
+  (flow-type/compile
+   "flow check"
+   "check --quiet --show-all-errors"))

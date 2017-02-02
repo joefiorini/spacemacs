@@ -26,6 +26,19 @@
   (spacemacs|add-company-backends :backends company-flow :modes js2-mode react-mode))
 
 (defun flow-type/post-init-js2-mode()
+  (require 'compile)
+  (spacemacs/declare-prefix-for-mode 'js2-mode "mf" "flow" "flow type checker commands")
+  (spacemacs/set-leader-keys-for-major-mode 'js2-mode
+    "fs" 'flow-type/show-start-server
+    "fc" 'flow-type/status
+    "fC" 'flow-type/check)
+  (when flow-type-no-auto-start
+    (add-to-list 'flycheck-javascript-flow-args "--no-auto-start"))
+  (when (eq 'process flow-type-no-auto-start)
+    (add-hook 'js2-mode-hook 'flow-type/ensure-server-buffer))
+  (add-to-list 'compilation-error-regexp-alist-alist
+               '(flow "^\\([^:\n]+\\):\\([0-9]+\\)$" 1 2))
+  (add-to-list 'compilation-error-regexp-alist 'flow)
   (add-to-list 'spacemacs-jump-handlers-js2-mode 'flow-type/jump-to-definition))
 
 ;; There's no flow-type/post-init-react hook, so we have to do this dance:

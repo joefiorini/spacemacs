@@ -5,8 +5,22 @@ This layer adds some [[https://flowtype.org/][flow]] related functionality to Em
  - Show the flow-type of the object under the cursor using Eldoc
  - Add flow checking to flycheck (based on the flycheck-flow package)
  - company-mode completion using company-flow
+ - "compilation" using =flow status= and =flow check=
+ - auto staring =flow server= in a project specific comint buffer
 
 * Install
 To use this configuration layer, add it to your =~/.spacemacs=. You will need to
 add =flow-type= to the existing =dotspacemacs-configuration-layers= list in this
 file. Please ensure you already have the flow binary installed and in your PATH.
+
+To prevent the flow server from auto-starting, set =flow-type/no-auto-start= to =t=.
+To start the server in a comint buffer on entering a =js2-mode= buffer, set it to ='process=.
+
+#+BEGIN_SRC emacs-lisp
+(flow-type :variables flow-type/no-auto-start 'process)
+#+END_SRC
+
+* js2-mode key bindings
+  | ,fs | flow-type/show-start-server | show flow server buffer, starting if necessary |
+  | ,fc | flow-type/status            | run `flow status' as a compiler                |
+  | ,fC | flow-type/check             | run `flow check' as a compiler                 |
