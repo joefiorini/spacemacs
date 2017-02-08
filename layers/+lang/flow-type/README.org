@@ -13,14 +13,26 @@ To use this configuration layer, add it to your =~/.spacemacs=. You will need to
 add =flow-type= to the existing =dotspacemacs-configuration-layers= list in this
 file. Please ensure you already have the flow binary installed and in your PATH.
 
-To prevent the flow server from auto-starting, set =flow-type/no-auto-start= to =t=.
+To prevent the flow server from auto-starting, set =flow-type-no-auto-start= to =t=.
 To start the server in a comint buffer on entering a =js2-mode= buffer, set it to ='process=.
 
 #+BEGIN_SRC emacs-lisp
-(flow-type :variables flow-type/no-auto-start 'process)
+(flow-type :variables flow-type-no-auto-start 'process)
 #+END_SRC
 
+The type under the cursor is shown automatically using eldoc.  You may find this
+a little sluggish, depending on your setup - if so, you can disable it by setting
+=flow-type-enable-eldoc-type-info= to =nil=.
+
+#+BEGIN_SRC emacs-lisp
+(flow-type :variables flow-type-enable-eldoc-type-info nil)
+#+END_SRC
+
+You can always show types manually using =flow-type/show-type-at-cursor=,
+bound to =,ft= by default.
+
 * js2-mode key bindings
-  | ,fs | flow-type/show-start-server | show flow server buffer, starting if necessary |
-  | ,fc | flow-type/status            | run `flow status' as a compiler                |
-  | ,fC | flow-type/check             | run `flow check' as a compiler                 |
+  | ,fs | flow-type/show-start-server   | show flow server buffer, starting if necessary      |
+  | ,fc | flow-type/status              | run `flow status' as a compiler                     |
+  | ,fC | flow-type/check               | run `flow check' as a compiler                      |
+  | ,ft | flow-type/show-type-at-cursor | print the type under the cursor to the message line |
