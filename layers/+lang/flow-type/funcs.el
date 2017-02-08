@@ -65,7 +65,7 @@
   (message "%s" (flow-type/type-at-cursor)))
 
 (defun flow-type/enable-eldoc ()
-  (if (and buffer-file-name (locate-dominating-file buffer-file-name ".flowconfig"))
+  (if (and buffer-file-name flow-type-enable-eldoc-type-info (locate-dominating-file buffer-file-name ".flowconfig"))
       (set (make-local-variable 'eldoc-documentation-function) 'flow-type/type-at-cursor)))
 
 (defun flow-type/jump-to-definition ()
