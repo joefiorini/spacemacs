@@ -16,6 +16,19 @@
     eldoc
     js2-mode))
 
+(defun flow-type/add-mode-integrations(mode)
+  (spacemacs/declare-prefix-for-mode mode "mf" "flow" "flow type checker commands")
+  (spacemacs/set-leader-keys-for-major-mode mode
+    "fs" 'flow-type/show-start-server
+    "fc" 'flow-type/status
+    "fC" 'flow-type/check
+    "fd" 'flow-type/jump-to-definition
+    "ft" 'flow-type/show-type-at-cursor)
+
+  (when (eq 'process flow-type-no-auto-start)
+    (add-hook mode 'flow-type/ensure-server-buffer))
+  (add-to-list (intern (format "spacemacs-jump-handlers-%S" mode)) 'flow-type/jump-to-definition))
+
 (defun flow-type/post-init-eldoc()
   (when (configuration-layer/package-usedp 'js2-mode)
     (push 'flow-type/enable-eldoc js2-mode-hook))
@@ -25,28 +38,19 @@
 (defun flow-type/post-init-company()
   (spacemacs|add-company-backends :backends company-flow :modes js2-mode react-mode))
 
-(defun flow-type/post-init-js2-mode()
-  (require 'compile)
-  (spacemacs/declare-prefix-for-mode 'js2-mode "mf" "flow" "flow type checker commands")
-  (spacemacs/set-leader-keys-for-major-mode 'js2-mode
-    "fs" 'flow-type/show-start-server
-    "fc" 'flow-type/status
-    "fC" 'flow-type/check
-    "ft" 'flow-type/show-type-at-cursor)
-  (when flow-type-no-auto-start
-    (add-to-list 'flycheck-javascript-flow-args "--no-auto-start"))
-  (when (eq 'process flow-type-no-auto-start)
-    (add-hook 'js2-mode-hook 'flow-type/ensure-server-buffer))
+(with-eval-after-load 'compile
   (add-to-list 'compilation-error-regexp-alist-alist
                '(flow "^\\([^:\n]+\\):\\([0-9]+\\)$" 1 2))
-  (add-to-list 'compilation-error-regexp-alist 'flow)
-  (add-to-list 'spacemacs-jump-handlers-js2-mode 'flow-type/jump-to-definition))
+  (add-to-list 'compilation-error-regexp-alist 'flow))
+
+(defun flow-type/post-init-js2-mode()
+  (flow-type/add-mode-integrations 'js2-mode))
 
 ;; There's no flow-type/post-init-react hook, so we have to do this dance:
-(defun flow-type/add-react-jump-handler()
-  (add-to-list 'spacemacs-jump-handlers-react-mode 'flow-type/jump-to-definition)
-  (remove-hook 'react-mode-hook 'flow-type/add-react-jump-handler))
-(add-hook 'react-mode-hook 'flow-type/add-react-jump-handler)
+(defun flow-type/pseudo-post-init-react-mode()
+  (flow-type/add-mode-integrations 'react-mode)
+  (remove-hook 'react-mode-hook 'flow-type/pseudo-post-init-react-mode))
+(add-hook 'react-mode-hook 'flow-type/pseudo-post-init-react-mode)
 
 (defun flow-type/init-company-flow ()
   (use-package company-flow
@@ -62,6 +66,8 @@
       (progn
         ;; Don't run flow if there's no @flow pragma
         (custom-set-variables '(flycheck-javascript-flow-args (quote ("--respect-pragma"))))
+        (when flow-type-no-auto-start
+          (add-to-list 'flycheck-javascript-flow-args "--no-auto-start"))
         ;; Run flow in react-mode files
         (flycheck-add-mode 'javascript-flow 'react-mode)
         ;; After running js-flow, run js-eslint
