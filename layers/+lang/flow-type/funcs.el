@@ -58,7 +58,9 @@
                          (flow-type/--no-auto-start-arg)
                          (line-number-at-pos) (+ (current-column) 1)))))
     (unless (string-match "\w*flow is still initializing" output)
-      (flow-type/describe-info-object (json-read-from-string output)))))
+      (condition-case nil
+          (flow-type/describe-info-object (json-read-from-string output))
+        (error output)))))
 
 (defun flow-type/show-type-at-cursor ()
   (interactive)
